@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="es-MX">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>CivicGuard PWA</title>
+  <meta name="description" content="Reporta incidencias en infraestructura urbana, incluso sin conexión.">
+  <meta name="theme-color" content="#0b1020">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" type="image/png" href="/icons/icon-192.png">
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="CivicGuard">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <!-- ===== APPLICATION SHELL (inmutable: se precachea en el SW) ===== -->
+  <header class="app-header">
+    <div class="brand">
+      <svg class="logo" viewBox="0 0 48 48" aria-hidden="true">
+        <path d="M24 3 42 9v13c0 11-7.5 19.5-18 23C13.5 41.5 6 33 6 22V9z" fill="var(--amber)"/>
+        <path d="M24 8 37 12.5V22c0 8.5-5.5 15-13 18-7.5-3-13-9.5-13-18v-9.5z" fill="var(--bg)"/>
+        <circle cx="24" cy="21" r="5" fill="var(--red)"/>
+        <path d="m24 33-5.5-8h11z" fill="var(--red)"/>
+      </svg>
+      <div>
+        <h1>CivicGuard</h1>
+        <p class="tagline">Vigilancia ciudadana</p>
+      </div>
+    </div>
+    <span id="net-status" class="badge" role="status" aria-live="polite">Comprobando…</span>
+  </header>
+
+  <nav class="app-nav" aria-label="Navegación principal">
+    <button type="button" data-view="new" class="active">
+      <svg class="ico-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+      <span>Reportar</span>
+    </button>
+    <button type="button" data-view="list">
+      <svg class="ico-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"/></svg>
+      <span>Mis reportes <span id="pending-count" class="pill" hidden>0</span></span>
+    </button>
+    <button type="button" data-view="settings">
+      <svg class="ico-svg" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c.26.604.852.997 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      <span>Ajustes</span>
+    </button>
+  </nav>
+
+  <main id="content">
+    <!-- ==================== VISTA: NUEVO REPORTE ==================== -->
+    <section id="view-new" class="view active" aria-labelledby="h-new">
+      <h2 id="h-new" class="sr-only">Reportar incidencia</h2>
+
+      <button type="button" id="btn-sos" class="sos">
+        <span class="sos-ring" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
+        </span>
+        <span class="sos-text">
+          <strong>EMERGENCIA</strong>
+          <small>Activa prioridad alta y ubicación en 1 toque</small>
+        </span>
+      </button>
+
+      <!-- Barra de progreso del asistente de 3 pasos -->
+      <div id="wizard-progress" class="wizard-progress" aria-live="polite">
+        <div class="wizard-progress-head">
+          <span id="wizard-step-label" class="wizard-step-label">Paso 1 de 3</span>
+          <span id="wizard-step-title" class="wizard-step-title">Tipo de problema</span>
+        </div>
+        <div class="progress-track" role="progressbar" aria-valuemin="1" aria-valuemax="3" aria-valuenow="1" aria-label="Progreso del reporte">
+          <div id="wizard-bar-fill" class="progress-fill" style="width: 33.33%"></div>
+        </div>
+        <div class="wizard-dots" aria-hidden="true">
+          <span class="w-dot active" data-step-dot="1">1. Problema</span>
+          <span class="w-dot" data-step-dot="2">2. Lugar y foto</span>
+          <span class="w-dot" data-step-dot="3">3. Detalles</span>
+        </div>
+      </div>
+
+      <form id="report-form" novalidate>
+        <!-- ===== PASO 1: TIPO DE INCIDENCIA ===== -->
+        <div id="step-1" class="wizard-step active" data-step="1">
+          <div class="field-head">
+            <label id="type-label" class="field-label">¿Qué problema quieres reportar?</label>
+            <p id="type-help" class="field-help">Toca la opción que mejor describe lo que ves en la calle.</p>
+          </div>
+
+          <div id="type-cards" class="type-grid" role="radiogroup" aria-labelledby="type-label" aria-describedby="type-help type-error">
+            <button type="button" class="type-card" role="radio" aria-checked="false" data-type="Bache">
+              <span class="type-ico" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M3 17h4l2-4 3 3 3-5 2 6h4"/><path d="M2 20h20"/></svg>
+              </span>
+              <span class="type-name">Bache</span>
+            </button>
+            <button type="button" class="type-card" role="radio" aria-checked="false" data-type="Alumbrado">
+              <span class="type-ico" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M9 18h6M10 22h4"/><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"/></svg>
+              </span>
+              <span class="type-name">Alumbrado</span>
+            </button>
+            <button type="button" class="type-card" role="radio" aria-checked="false" data-type="Fuga de agua">
+              <span class="type-ico" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+              </span>
+              <span class="type-name">Fuga de agua</span>
+            </button>
+            <button type="button" class="type-card" role="radio" aria-checked="false" data-type="Semáforo">
+              <span class="type-ico" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><rect x="7" y="2" width="10" height="20" rx="3"/><circle cx="12" cy="7" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="17" r="1.5"/></svg>
+              </span>
+              <span class="type-name">Semáforo</span>
+            </button>
+            <button type="button" class="type-card" role="radio" aria-checked="false" data-type="Árbol caído">
+              <span class="type-ico" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M12 3l-5 7h3l-4 6h12l-4-6h3z"/><path d="M12 16v5"/></svg>
+              </span>
+              <span class="type-name">Árbol caído</span>
+            </button>
+            <button type="button" class="type-card" role="radio" aria-checked="false" data-type="Inundación">
+              <span class="type-ico" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M2 15c2-2 4-2 6 0s4 2 6 0 4-2 6 0"/><path d="M2 20c2-2 4-2 6 0s4 2 6 0 4-2 6 0"/><path d="M8 10V5l4-3 4 3v5"/></svg>
+              </span>
+              <span class="type-name">Inundación</span>
+            </button>
+            <button type="button" class="type-card" role="radio" aria-checked="false" data-type="Otro">
+              <span class="type-ico" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg>
+              </span>
+              <span class="type-name">Otro</span>
+            </button>
+          </div>
+
+          <select id="type" required hidden aria-hidden="true" tabindex="-1">
+            <option value="">Selecciona el tipo…</option>
+            <option value="Bache">Bache</option>
+            <option value="Alumbrado">Alumbrado</option>
+            <option value="Fuga de agua">Fuga de agua</option>
+            <option value="Semáforo">Semáforo</option>
+            <option value="Árbol caído">Árbol caído</option>
+            <option value="Inundación">Inundación</option>
+            <option value="Otro">Otro</option>
+          </select>
+
+          <p id="type-error" class="field-error" role="alert" hidden></p>
+
+          <div class="wizard-actions">
+            <button type="button" id="btn-next-1" class="btn-primary full">
+              <span>Continuar</span>
+              <svg class="ico-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- ===== PASO 2: UBICACIÓN Y EVIDENCIA ===== -->
+        <div id="step-2" class="wizard-step" data-step="2" hidden>
+          <fieldset class="panel">
+            <legend class="field-label">¿Dónde ocurre el problema?</legend>
+            <p class="field-help">Tu ubicación exacta permite enviar al equipo al punto correcto.</p>
+
+            <div class="radar-panel">
+              <div id="radar" class="radar" aria-hidden="true">
+                <i></i><i></i><i></i>
+                <span class="sweep"></span>
+                <span class="blip"></span>
+              </div>
+              <div class="radar-info">
+                <button type="button" id="btn-geo" class="btn-secondary">
+                  <svg class="ico-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                  <span>Usar mi ubicación actual</span>
+                </button>
+                <p id="geo-out" class="hint" aria-live="polite">Aún sin ubicación confirmada.</p>
+              </div>
+            </div>
+            <p id="geo-error" class="field-error" role="alert" hidden></p>
+          </fieldset>
+
+          <fieldset class="panel">
+            <legend class="field-label">Foto de evidencia (opcional)</legend>
+            <p class="field-help">Una imagen ayuda a evaluar el daño antes de llegar al sitio.</p>
+
+            <div class="row">
+              <button type="button" id="btn-camera" class="ghost">
+                <svg class="ico-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                <span>Tomar foto</span>
+              </button>
+              <label class="file-btn ghost" tabindex="0">
+                <svg class="ico-svg" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+                <span>Elegir de galería</span>
+                <input type="file" id="file-input" accept="image/*" capture="environment" hidden>
+              </label>
+            </div>
+
+            <video id="video" playsinline muted hidden></video>
+            <div class="row" id="cam-actions" hidden>
+              <button type="button" id="btn-snap">
+                <svg class="ico-svg" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/></svg>
+                <span>Capturar foto</span>
+              </button>
+              <button type="button" id="btn-stop" class="ghost">Cerrar cámara</button>
+            </div>
+            <canvas id="canvas" hidden></canvas>
+
+            <div id="photo-preview-wrap" class="preview-wrap" hidden>
+              <img id="preview" alt="Vista previa de la evidencia" hidden>
+              <button type="button" id="btn-remove-photo" class="ghost small">
+                <svg class="ico-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+                <span>Quitar foto</span>
+              </button>
+            </div>
+          </fieldset>
+
+          <div class="wizard-actions two">
+            <button type="button" id="btn-prev-2" class="ghost">
+              <svg class="ico-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>
+              <span>Atrás</span>
+            </button>
+            <button type="button" id="btn-next-2" class="btn-primary">
+              <span>Revisar reporte</span>
+              <svg class="ico-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- ===== PASO 3: DESCRIPCIÓN, PRIORIDAD Y RESUMEN ===== -->
+        <div id="step-3" class="wizard-step" data-step="3" hidden>
+          <div class="panel">
+            <label for="description" class="field-label">Descripción del problema</label>
+            <p id="description-help" class="field-help">Describe qué ocurre y si hay riesgo para las personas.</p>
+            <textarea id="description" rows="4" maxlength="500" required
+              aria-describedby="description-help description-count description-error"
+              placeholder="Ej. Bache profundo frente al parque, los autos tienen que invadir el otro carril…"></textarea>
+            <div class="field-meta">
+              <p id="description-error" class="field-error" role="alert" hidden></p>
+              <span id="description-count" class="char-count" aria-live="polite">0 / 500</span>
+            </div>
+          </div>
+
+          <div class="panel">
+            <span id="priority-label" class="field-label">Nivel de urgencia</span>
+            <p id="priority-help" class="field-help">Elige "Alta" si hay riesgo inmediato para peatones o vehículos.</p>
+            <div class="chips" id="priority-chips" role="radiogroup" aria-labelledby="priority-label" aria-describedby="priority-help">
+              <button type="button" role="radio" data-p="baja" aria-checked="false" class="chip p-baja">Baja</button>
+              <button type="button" role="radio" data-p="media" aria-checked="true" class="chip p-media on">Media</button>
+              <button type="button" role="radio" data-p="alta" aria-checked="false" class="chip p-alta">Alta</button>
+            </div>
+            <select id="priority" hidden aria-hidden="true" tabindex="-1">
+              <option value="baja">Baja</option>
+              <option value="media" selected>Media</option>
+              <option value="alta">Alta (emergencia)</option>
+            </select>
+          </div>
+
+          <!-- Resumen previo al envío -->
+          <div id="review-summary" class="panel summary-panel" aria-label="Resumen de tu reporte">
+            <div class="summary-head">
+              <h3>Resumen antes de enviar</h3>
+            </div>
+            <dl class="summary-list">
+              <div class="summary-row">
+                <dt>Problema</dt>
+                <dd id="sum-type">—</dd>
+                <button type="button" class="link-btn" data-goto-step="1">Cambiar</button>
+              </div>
+              <div class="summary-row">
+                <dt>Ubicación</dt>
+                <dd id="sum-geo">—</dd>
+                <button type="button" class="link-btn" data-goto-step="2">Cambiar</button>
+              </div>
+              <div class="summary-row">
+                <dt>Evidencia</dt>
+                <dd id="sum-photo">Sin foto adjunta</dd>
+                <button type="button" class="link-btn" data-goto-step="2">Cambiar</button>
+              </div>
+              <div class="summary-row">
+                <dt>Urgencia</dt>
+                <dd id="sum-priority">Media</dd>
+              </div>
+            </dl>
+          </div>
+
+          <p id="form-msg" class="field-error" role="status" aria-live="polite" hidden></p>
+
+          <div class="wizard-actions two">
+            <button type="button" id="btn-prev-3" class="ghost">
+              <svg class="ico-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>
+              <span>Atrás</span>
+            </button>
+            <button type="submit" id="btn-submit" class="btn-primary">
+              <svg class="ico-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4z"/></svg>
+              <span>Enviar reporte</span>
+            </button>
+          </div>
+        </div>
+      </form>
+
+      <!-- ===== PANTALLA DE CONFIRMACIÓN ===== -->
+      <section id="report-confirmation" class="panel confirm-card" hidden aria-live="polite">
+        <div id="confirm-icon" class="confirm-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+        </div>
+        <h3 id="confirm-title">Reporte guardado</h3>
+        <div class="folio-box">
+          <span class="folio-label">Folio de seguimiento</span>
+          <strong id="confirm-folio" class="folio-code">CG-2026-0001</strong>
+        </div>
+        <p id="confirm-status-msg" class="confirm-msg"></p>
+        <dl id="confirm-summary" class="summary-list compact"></dl>
+        <div class="wizard-actions two">
+          <button type="button" id="btn-confirm-list" class="ghost">Ver mis reportes</button>
+          <button type="button" id="btn-confirm-new" class="btn-primary">Nuevo reporte</button>
+        </div>
+      </section>
+    </section>
+
+    <!-- ==================== VISTA: MIS REPORTES ==================== -->
+    <section id="view-list" class="view" aria-labelledby="h-list">
+      <div class="view-head">
+        <h2 id="h-list">Mis reportes</h2>
+        <button type="button" id="btn-sync" class="ghost small">
+          <svg class="ico-svg sync-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>
+          <span>Sincronizar</span>
+        </button>
+      </div>
+
+      <div id="status-filters" class="filter-bar" role="group" aria-label="Filtrar reportes por estatus">
+        <button type="button" class="filter-chip active" data-filter="all">Todos</button>
+        <button type="button" class="filter-chip" data-filter="pendiente">Guardados</button>
+        <button type="button" class="filter-chip" data-filter="recibido">Recibidos</button>
+        <button type="button" class="filter-chip" data-filter="en_proceso">En proceso</button>
+        <button type="button" class="filter-chip" data-filter="resuelto">Resueltos</button>
+      </div>
+
+      <ul id="report-list" class="cards" aria-live="polite">
+        <li class="skeleton">Cargando reportes…</li>
+      </ul>
+    </section>
+
+    <!-- ==================== VISTA: AJUSTES ==================== -->
+    <section id="view-settings" class="view" aria-labelledby="h-set">
+      <h2 id="h-set">Ajustes</h2>
+      <div class="panel">
+        <h3>Avisos de seguimiento</h3>
+        <p class="field-help">Recibe una notificación cuando tu reporte sea atendido o resuelto.</p>
+        <div class="row">
+          <button type="button" id="btn-push">
+            <svg class="ico-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            <span>Activar avisos</span>
+          </button>
+          <button type="button" id="btn-push-off" class="ghost">Desactivar</button>
+        </div>
+        <p id="push-msg" class="hint" aria-live="polite"></p>
+      </div>
+
+      <div class="panel">
+        <h3>Guía rápida</h3>
+        <p class="field-help">Vuelve a ver cómo funciona CivicGuard en 3 pasos sencillos.</p>
+        <button type="button" id="btn-replay-onboarding" class="ghost full">
+          <svg class="ico-svg" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+          <span>Ver pantalla de bienvenida</span>
+        </button>
+      </div>
+
+      <button type="button" id="btn-install" class="ghost" hidden>
+        <svg class="ico-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        <span>Instalar aplicación en mi dispositivo</span>
+      </button>
+      <p class="hint center">CivicGuard · versión <span id="sw-version">—</span></p>
+    </section>
+  </main>
+
+  <!-- ==================== MODAL: BIENVENIDA (3 DIAPOSITIVAS) ==================== -->
+  <div id="onboarding-modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="onboard-title" hidden>
+    <div class="modal-card">
+      <div class="onboard-slides">
+        <div class="onboard-slide active" data-slide="0">
+          <div class="onboard-art" aria-hidden="true">
+            <svg viewBox="0 0 80 80">
+              <circle cx="40" cy="40" r="36" fill="rgba(255,176,32,0.12)" stroke="var(--amber)" stroke-width="2"/>
+              <path d="M26 42l10 10 20-22" fill="none" stroke="var(--amber)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <h2 id="onboard-title">Reporta en 3 pasos claros</h2>
+          <p>Elige el tipo de problema con tarjetas visuales, confirma tu ubicación y cuéntanos qué sucede.</p>
+        </div>
+        <div class="onboard-slide" data-slide="1" hidden>
+          <div class="onboard-art" aria-hidden="true">
+            <svg viewBox="0 0 80 80">
+              <circle cx="40" cy="40" r="36" fill="rgba(61,224,197,0.12)" stroke="var(--cyan)" stroke-width="2"/>
+              <path d="M25 46a10 10 0 0 1 2-19.8 14 14 0 0 1 26.8 3.2A9 9 0 0 1 54 46H25z" fill="none" stroke="var(--cyan)" stroke-width="3" stroke-linejoin="round"/>
+              <path d="M40 34v18M34 46l6 6 6-6" fill="none" stroke="var(--cyan)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <h2>Funciona aunque no tengas internet</h2>
+          <p>Si estás en una zona sin señal, tu reporte se guarda seguro en tu teléfono y se envía solo al volver la conexión.</p>
+        </div>
+        <div class="onboard-slide" data-slide="2" hidden>
+          <div class="onboard-art" aria-hidden="true">
+            <svg viewBox="0 0 80 80">
+              <circle cx="40" cy="40" r="36" fill="rgba(91,140,255,0.15)" stroke="var(--blue)" stroke-width="2"/>
+              <circle cx="24" cy="40" r="5" fill="var(--amber)"/>
+              <circle cx="40" cy="40" r="5" fill="var(--blue)"/>
+              <circle cx="56" cy="40" r="5" fill="var(--cyan)"/>
+              <path d="M29 40h6M45 40h6" stroke="var(--text)" stroke-width="2.5"/>
+            </svg>
+          </div>
+          <h2>Sigue cada paso de tu folio</h2>
+          <p>Recibe un folio único y revisa en tiempo real cuando tu reporte pase de Guardado a Resuelto.</p>
+        </div>
+      </div>
+
+      <div class="onboard-dots" aria-hidden="true">
+        <span class="o-dot active" data-dot="0"></span>
+        <span class="o-dot" data-dot="1"></span>
+        <span class="o-dot" data-dot="2"></span>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" id="btn-onboard-skip" class="ghost small">Saltar</button>
+        <div class="row">
+          <button type="button" id="btn-onboard-prev" class="ghost small" hidden>Anterior</button>
+          <button type="button" id="btn-onboard-next" class="btn-primary small">Siguiente</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL: EXPLICACIÓN DE PERMISOS ==================== -->
+  <div id="perm-modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="perm-title" hidden>
+    <div class="modal-card">
+      <div id="perm-icon" class="onboard-art" aria-hidden="true"></div>
+      <h2 id="perm-title">Permiso necesario</h2>
+      <p id="perm-desc"></p>
+      <div class="modal-actions">
+        <button type="button" id="btn-perm-cancel" class="ghost">Ahora no</button>
+        <button type="button" id="btn-perm-allow" class="btn-primary">Continuar y permitir</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+  <noscript>CivicGuard requiere JavaScript habilitado.</noscript>
+
+  <script src="/db.js"></script>
+  <script src="/app.js"></script>
+</body>
+</html>

@@ -4,7 +4,7 @@
  */
 importScripts('/db.js');
 
-const VERSION = 'v1.2.0';
+const VERSION = 'v1.2.1';
 const SHELL_CACHE = `civicguard-shell-${VERSION}`;   // recursos inmutables del cascarón (Cache API)
 const RUNTIME_CACHE = `civicguard-runtime-${VERSION}`; // respuestas dinámicas (API GET)
 const SYNC_TAG = 'sync-reports';
@@ -122,14 +122,19 @@ self.addEventListener('push', event => {
   let data = { title: 'CivicGuard', body: 'Tienes una actualización de tus reportes.', reportId: null };
   try { if (event.data) data = { ...data, ...event.data.json() }; } catch (e) { /* texto plano */ }
   event.waitUntil(
-    self.registration.showNotification(data.title, {
-      body: data.body,
-      icon: '/icons/icon-192.png',
-      badge: '/icons/icon-192.png',
-      tag: data.reportId || 'civicguard',
-      data: { url: '/?view=list' },
-      vibrate: [120, 60, 120]
-    })
+    Promise.all([
+      self.registration.showNotification(data.title, {
+        body: data.body,
+        icon: '/icons/icon-192.png',
+        badge: '/icons/icon-192.png',
+        tag: data.reportId || 'civicguard',
+        data: { url: '/?view=list' },
+        vibrate: [120, 60, 120]
+      }),
+      self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(list => {
+        list.forEach(c => c.postMessage({ type: 'PUSH_RECEIVED', body: data.body, reportId: data.reportId }));
+      })
+    ])
   );
 });
 

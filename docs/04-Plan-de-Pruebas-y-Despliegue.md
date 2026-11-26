@@ -65,7 +65,7 @@ Opciones de hosting con SSL/TLS automático (cualquiera con Node.js): **Render**
 5. Añadir un disco persistente en `/opt/render/project/src/data` **o** definir `DATA_DIR` hacia el disco (si no, los datos se pierden al reiniciar en planes gratuitos).
 6. Verificar el candado HTTPS y repetir pruebas F1–F10 en la URL pública.
 
-**URL pública de producción:** [COMPLETAR – https://…]
+**URL pública de producción:** https://civicguard-z11x.onrender.com/
 **Repositorio:** https://github.com/DelmyCab27/CivicGuard
 
 ## 5. Conclusiones [COMPLETAR]

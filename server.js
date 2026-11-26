@@ -141,7 +141,10 @@ async function notifyAll(payload) {
   let sent = 0;
   await Promise.all(subs.map(async s => {
     try { await webpush.sendNotification(s, JSON.stringify(payload)); alive.push(s); sent++; }
-    catch (e) { if (e.statusCode !== 404 && e.statusCode !== 410) alive.push(s); }
+    catch (e) {
+      console.error('Push error:', e.statusCode, e.body || e.message);
+      if (e.statusCode !== 404 && e.statusCode !== 410 && e.statusCode !== 403 && e.statusCode !== 401) alive.push(s);
+    }
   }));
   writeJson(SUBS_FILE, alive);
   return sent;

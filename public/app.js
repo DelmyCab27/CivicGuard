@@ -80,11 +80,19 @@
   }
 
   /* ---------------- Navegación SPA ---------------- */
+  let listPollTimer = null;
   function showView(name) {
     document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === 'view-' + name));
     document.querySelectorAll('.app-nav button').forEach(b => b.classList.toggle('active', b.dataset.view === name));
+    clearInterval(listPollTimer);
+    listPollTimer = null;
     if (name === 'list') {
       refreshRemoteStatuses().finally(() => renderList());
+      listPollTimer = setInterval(() => {
+        if (navigator.onLine && !document.hidden) {
+          refreshRemoteStatuses().then(changed => { if (changed) renderList(); });
+        }
+      }, 5000);
     }
   }
   document.querySelectorAll('.app-nav button').forEach(b => b.addEventListener('click', () => showView(b.dataset.view)));
@@ -482,12 +490,15 @@
 
   /* ---------------- Sincronización ---------------- */
   async function requestSync() {
+    if (navigator.onLine) {
+      await manualSync();
+      return;
+    }
     const reg = await navigator.serviceWorker?.ready;
     if (!reg) return;
     if ('sync' in reg) {
       try { await reg.sync.register('sync-reports'); return; } catch (e) { /* fallback manual */ }
     }
-    await manualSync();
   }
 
   async function manualSync() {
@@ -536,20 +547,23 @@
   $('btn-sync').addEventListener('click', manualSync);
 
   async function refreshRemoteStatuses() {
-    if (!navigator.onLine) return;
+    if (!navigator.onLine) return false;
     try {
-      const res = await fetch('/api/reports');
-      if (!res.ok) return;
+      const res = await fetch('/api/reports', { cache: 'no-store' });
+      if (!res.ok) return false;
       const remote = await res.json();
       const map = new Map(remote.map(item => [item.id, item.status]));
       const local = await CGDB.getAllReports();
+      let changed = false;
       for (const r of local) {
         const remoteStatus = map.get(r.id);
-        if (remoteStatus && remoteStatus !== r.status && r.status !== 'pendiente') {
+        if (remoteStatus && remoteStatus !== r.status && r.status !== 'pendiente' && r.status !== 'enviando') {
           await CGDB.updateStatus(r.id, { status: remoteStatus });
+          changed = true;
         }
       }
-    } catch (e) { /* sin conexión o fallo silencioso */ }
+      return changed;
+    } catch (e) { return false; }
   }
 
   /* ---------------- Listado y filtros ---------------- */
@@ -726,15 +740,17 @@
     }
     try {
       const reg = await navigator.serviceWorker.ready;
-      const { key } = await (await fetch('/api/push/public-key')).json();
-      const sub = (await reg.pushManager.getSubscription()) ||
-        await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlBase64ToUint8Array(key) });
-      await fetch('/api/push/subscribe', {
+      const { key } = await (await fetch('/api/push/public-key', { cache: 'no-store' })).json();
+      const existing = await reg.pushManager.getSubscription();
+      if (existing) await existing.unsubscribe().catch(() => {});
+      const sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlBase64ToUint8Array(key) });
+      const subRes = await fetch('/api/push/subscribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(sub)
       });
-      msg.textContent = 'Avisos activados correctamente.';
+      if (!subRes.ok) throw new Error('El servidor rechazó la suscripción');
+      msg.textContent = 'Avisos activados correctamente. Ya puedes recibir notificaciones.';
     } catch (e) {
       msg.textContent = 'No se pudo activar (¿hay conexión?): ' + e.message;
     }
@@ -780,6 +796,10 @@
           toast(`Sincronizados ${e.data.count} reporte(s)`);
           updatePending();
           renderList();
+        }
+        if (e.data?.type === 'PUSH_RECEIVED') {
+          toast(e.data.body || 'Tienes una actualización de tu reporte');
+          refreshRemoteStatuses().then(() => renderList());
         }
         if (e.data?.type === 'VERSION') $('sw-version').textContent = e.data.version;
       });

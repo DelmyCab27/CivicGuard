@@ -78,6 +78,7 @@ app.post('/api/reports', upload.single('photo'), (req, res) => {
   const list = readJson(DB_FILE, []);
   let report = list.find(r => r.id === b.id);
   if (report) return res.json(report); // idempotente: los reintentos de sync no duplican
+  const receivedAt = Date.now();
   report = {
     id: String(b.id).slice(0, 64),
     type: String(b.type).slice(0, 60),
@@ -85,28 +86,57 @@ app.post('/api/reports', upload.single('photo'), (req, res) => {
     priority: VALID_PRIORITY.includes(b.priority) ? b.priority : 'media',
     lat, lng, accuracy: parseFloat(b.accuracy) || null,
     photo: req.file ? '/uploads/' + req.file.filename : null,
+    resolvedPhoto: null,
+    adminNote: null,
     status: 'recibido',
-    createdAt: Number(b.createdAt) || Date.now(),
-    receivedAt: Date.now()
+    createdAt: Number(b.createdAt) || receivedAt,
+    receivedAt,
+    history: [
+      { status: 'recibido', at: receivedAt, note: 'Recibido por CivicGuard' }
+    ]
   };
   list.push(report);
   writeJson(DB_FILE, list);
   res.status(201).json(report);
 });
 
+/* Login de administrador */
+app.post('/api/admin/login', (req, res) => {
+  const { password } = req.body || {};
+  if (!password || password !== ADMIN_TOKEN) return res.status(401).json({ error: 'Contraseña incorrecta' });
+  res.json({ ok: true });
+});
+
 /* Cambio de estatus (uso de la dependencia municipal) -> dispara push */
-app.patch('/api/reports/:id/status', async (req, res) => {
+app.patch('/api/reports/:id/status', upload.single('resolvedPhoto'), async (req, res) => {
   if (req.get('x-admin-token') !== ADMIN_TOKEN) return res.status(401).json({ error: 'No autorizado' });
-  const { status } = req.body || {};
+  const { status, note } = req.body || {};
   if (!VALID_STATUS.includes(status)) return res.status(400).json({ error: 'Estatus inválido' });
   const list = readJson(DB_FILE, []);
   const report = list.find(r => r.id === req.params.id);
   if (!report) return res.status(404).json({ error: 'No encontrado' });
-  report.status = status; report.updatedAt = Date.now();
+
+  const now = Date.now();
+  const cleanNote = typeof note === 'string' && note.trim() ? note.trim().slice(0, 400) : null;
+  report.status = status;
+  report.updatedAt = now;
+  if (cleanNote) report.adminNote = cleanNote;
+  if (req.file) report.resolvedPhoto = '/uploads/' + req.file.filename;
+  if (!Array.isArray(report.history)) {
+    report.history = [{ status: 'recibido', at: report.receivedAt || report.createdAt || now, note: 'Recibido por CivicGuard' }];
+  }
+  report.history.push({
+    status,
+    at: now,
+    note: cleanNote || (status === 'en_proceso' ? 'Atención en proceso' : status === 'resuelto' ? 'Incidencia resuelta' : 'Marcado como recibido')
+  });
+
   writeJson(DB_FILE, list);
   if (status === 'resuelto') await notifyAll({
-    title: '✅ Reporte solucionado',
-    body: `Tu reporte de "${report.type}" fue marcado como resuelto.`,
+    title: 'Reporte solucionado',
+    body: cleanNote
+      ? `Tu reporte de "${report.type}" fue resuelto: ${cleanNote}`
+      : `Tu reporte de "${report.type}" fue marcado como resuelto.`,
     reportId: report.id
   });
   res.json(report);

@@ -4,7 +4,7 @@
  */
 importScripts('/db.js');
 
-const VERSION = 'v1.2.1';
+const VERSION = 'v1.3.0';
 const SHELL_CACHE = `civicguard-shell-${VERSION}`;   // recursos inmutables del cascarón (Cache API)
 const RUNTIME_CACHE = `civicguard-runtime-${VERSION}`; // respuestas dinámicas (API GET)
 const SYNC_TAG = 'sync-reports';

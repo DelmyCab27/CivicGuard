@@ -323,6 +323,8 @@
         </button>
       </div>
 
+      <p id="list-summary" class="list-summary" aria-live="polite" hidden></p>
+
       <div id="status-filters" class="filter-bar" role="group" aria-label="Filtrar reportes por estatus">
         <button type="button" class="filter-chip active" data-filter="all">Todos</button>
         <button type="button" class="filter-chip" data-filter="pendiente">Guardados</button>
@@ -434,6 +436,40 @@
       <div class="modal-actions">
         <button type="button" id="btn-perm-cancel" class="ghost">Ahora no</button>
         <button type="button" id="btn-perm-allow" class="btn-primary">Continuar y permitir</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL: DETALLE DEL REPORTE ==================== -->
+  <div id="detail-modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="detail-title" hidden>
+    <div class="modal-card detail-card">
+      <div class="detail-head">
+        <div>
+          <span id="detail-folio" class="folio-code small">CG-2026-0001</span>
+          <h2 id="detail-title">Detalle del reporte</h2>
+        </div>
+        <button type="button" id="btn-close-detail" class="ghost small" aria-label="Cerrar detalle">
+          <svg class="ico-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <div id="detail-tags" class="card-tags"></div>
+      <p id="detail-desc" class="detail-desc"></p>
+      <p id="detail-loc" class="hint"></p>
+
+      <div id="detail-photos" class="before-after-grid" hidden></div>
+
+      <div class="detail-history-wrap">
+        <h3>Bitácora de seguimiento</h3>
+        <ul id="detail-history" class="history-list"></ul>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" id="btn-delete-local" class="ghost small" hidden>Eliminar borrador</button>
+        <button type="button" id="btn-copy-folio" class="btn-secondary small" style="width:auto;">
+          <svg class="ico-svg" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          <span>Copiar folio</span>
+        </button>
       </div>
     </div>
   </div>

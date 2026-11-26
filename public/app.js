@@ -449,6 +449,7 @@
     }
 
     const folio = await CGDB.nextFolio();
+    const now = Date.now();
     const report = {
       id: uid(),
       folio,
@@ -457,8 +458,13 @@
       priority: $('priority').value,
       location: state.location,
       photo: state.photoBlob || null,
+      resolvedPhoto: null,
+      adminNote: null,
       status: 'pendiente',
-      createdAt: Date.now()
+      createdAt: now,
+      history: [
+        { status: 'pendiente', at: now, note: 'Guardado en tu dispositivo' }
+      ]
     };
 
     try {
@@ -532,7 +538,13 @@
         const res = await fetch('/api/reports', { method: 'POST', body: fd });
         if (!res.ok) throw new Error(res.status);
         const saved = await res.json();
-        await CGDB.updateStatus(r.id, { status: saved.status || 'recibido', syncedAt: Date.now() });
+        const prevHist = Array.isArray(r.history) ? r.history : [];
+        const srvHist = Array.isArray(saved.history) ? saved.history : [{ status: 'recibido', at: Date.now(), note: 'Recibido por CivicGuard' }];
+        await CGDB.updateStatus(r.id, {
+          status: saved.status || 'recibido',
+          syncedAt: Date.now(),
+          history: [...prevHist, ...srvHist]
+        });
       } catch (e) {
         await CGDB.updateStatus(r.id, { status: 'pendiente' });
         break;
@@ -552,13 +564,24 @@
       const res = await fetch('/api/reports', { cache: 'no-store' });
       if (!res.ok) return false;
       const remote = await res.json();
-      const map = new Map(remote.map(item => [item.id, item.status]));
+      const map = new Map(remote.map(item => [item.id, item]));
       const local = await CGDB.getAllReports();
       let changed = false;
       for (const r of local) {
-        const remoteStatus = map.get(r.id);
-        if (remoteStatus && remoteStatus !== r.status && r.status !== 'pendiente' && r.status !== 'enviando') {
-          await CGDB.updateStatus(r.id, { status: remoteStatus });
+        const srv = map.get(r.id);
+        if (!srv || r.status === 'pendiente' || r.status === 'enviando') continue;
+        const srvHistLen = Array.isArray(srv.history) ? srv.history.length : 0;
+        const localSrvLen = Number(r.srvHistLen || 0);
+        if (srv.status !== r.status || srv.adminNote !== r.adminNote || srv.resolvedPhoto !== r.resolvedPhoto || srvHistLen !== localSrvLen) {
+          const localOnly = (Array.isArray(r.history) ? r.history : []).filter(h => h.status === 'pendiente');
+          const mergedHistory = [...localOnly, ...(Array.isArray(srv.history) ? srv.history : [])];
+          await CGDB.updateStatus(r.id, {
+            status: srv.status,
+            adminNote: srv.adminNote || null,
+            resolvedPhoto: srv.resolvedPhoto || null,
+            srvHistLen,
+            history: mergedHistory.length ? mergedHistory : r.history
+          });
           changed = true;
         }
       }
@@ -605,8 +628,18 @@
 
   async function renderList() {
     const ul = $('report-list');
+    const summaryEl = $('list-summary');
     const allReports = await CGDB.getAllReports();
     const reports = allReports.filter(r => matchesFilter(r.status, state.filter));
+
+    if (allReports.length) {
+      const activos = allReports.filter(r => r.status !== 'resuelto').length;
+      const resueltos = allReports.length - activos;
+      summaryEl.textContent = `${activos} activo(s) · ${resueltos} resuelto(s)`;
+      summaryEl.hidden = false;
+    } else {
+      summaryEl.hidden = true;
+    }
 
     if (!allReports.length) {
       ul.innerHTML = `
@@ -665,6 +698,7 @@
           ${r.priority === 'alta' ? '<span class="tag alta">Urgente</span>' : ''}
         </div>
         <p>${escapeHtml(r.description)}</p>
+        ${r.adminNote ? `<p class="card-note"><strong>Respuesta municipal:</strong> ${escapeHtml(r.adminNote)}</p>` : ''}
         <div class="card-meta">
           <span>
             <svg class="ico-svg" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
@@ -689,9 +723,100 @@
 
       li.appendChild(top);
       li.insertAdjacentHTML('beforeend', renderTimelineHtml(r.status));
+      li.insertAdjacentHTML('beforeend', `
+        <div class="card-footer">
+          <button type="button" class="link-btn" data-detail-id="${escapeHtml(r.id)}">Ver detalle y bitácora →</button>
+        </div>
+      `);
       ul.appendChild(li);
     }
   }
+
+  let currentDetailReport = null;
+  async function openReportDetail(id) {
+    const r = await CGDB.getReport(id);
+    if (!r) return;
+    currentDetailReport = r;
+    const folio = r.folio || ('CG-' + String(r.id).slice(0, 8).toUpperCase());
+    const statusInfo = STATUS_INFO[r.status] || { label: r.status || 'Guardado' };
+
+    $('detail-folio').textContent = folio;
+    $('detail-title').textContent = r.type;
+    $('detail-tags').innerHTML = `
+      <span class="tag ${escapeHtml(r.status)}">${escapeHtml(statusInfo.label)}</span>
+      ${r.priority === 'alta' ? '<span class="tag alta">Urgente</span>' : ''}
+    `;
+    $('detail-desc').textContent = r.description;
+    $('detail-loc').textContent = r.location
+      ? `Ubicación: ${r.location.lat.toFixed(5)}, ${r.location.lng.toFixed(5)} (±${r.location.accuracy} m)`
+      : 'Sin ubicación registrada';
+
+    const photosEl = $('detail-photos');
+    photosEl.innerHTML = '';
+    if (r.photo || r.resolvedPhoto) {
+      if (r.photo) {
+        const wrap = document.createElement('div');
+        wrap.className = 'ba-item';
+        const img = document.createElement('img');
+        img.alt = 'Foto del ciudadano';
+        img.src = URL.createObjectURL(r.photo);
+        img.onload = () => URL.revokeObjectURL(img.src);
+        wrap.appendChild(img);
+        wrap.insertAdjacentHTML('beforeend', '<span>Antes (Tu reporte)</span>');
+        photosEl.appendChild(wrap);
+      }
+      if (r.resolvedPhoto) {
+        const wrap = document.createElement('div');
+        wrap.className = 'ba-item';
+        wrap.innerHTML = `<img src="${escapeHtml(r.resolvedPhoto)}" alt="Evidencia de solución"><span>Después (Solución)</span>`;
+        photosEl.appendChild(wrap);
+      }
+      photosEl.hidden = false;
+    } else {
+      photosEl.hidden = true;
+    }
+
+    const hist = Array.isArray(r.history) && r.history.length
+      ? r.history
+      : [{ status: r.status, at: r.createdAt, note: 'Registro del reporte' }];
+    $('detail-history').innerHTML = hist.map(item => {
+      const st = (STATUS_INFO[item.status] || { label: item.status }).label;
+      return `
+        <li class="history-item">
+          <strong>${escapeHtml(st)}</strong>
+          <time>${escapeHtml(formatReadableDate(item.at))}</time>
+          ${item.note ? `<p>${escapeHtml(item.note)}</p>` : ''}
+        </li>
+      `;
+    }).join('');
+
+    $('btn-delete-local').hidden = r.status !== 'pendiente';
+    $('detail-modal').hidden = false;
+    $('btn-close-detail').focus();
+  }
+
+  $('report-list').addEventListener('click', e => {
+    const btn = e.target.closest('button[data-detail-id]');
+    if (btn) openReportDetail(btn.dataset.detailId);
+  });
+  $('btn-close-detail').addEventListener('click', () => { $('detail-modal').hidden = true; });
+  $('btn-copy-folio').addEventListener('click', async () => {
+    const folio = $('detail-folio').textContent;
+    try {
+      await navigator.clipboard.writeText(folio);
+      toast(`Folio ${folio} copiado`);
+    } catch {
+      toast(`Tu folio es ${folio}`);
+    }
+  });
+  $('btn-delete-local').addEventListener('click', async () => {
+    if (!currentDetailReport) return;
+    await CGDB.deleteReport(currentDetailReport.id);
+    $('detail-modal').hidden = true;
+    toast('Borrador eliminado');
+    await updatePending();
+    renderList();
+  });
 
   /* ---------------- Bienvenida (3 diapositivas) ---------------- */
   function setOnboardSlide(idx) {

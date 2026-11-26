@@ -36,6 +36,45 @@
     }
     [hidden] { display: none !important; }
 
+    /* ---------- Login ---------- */
+    .login-wrap {
+      min-height: 100vh; display: grid; place-items: center; padding: 20px;
+    }
+    .login-card {
+      width: 100%; max-width: 400px; background: var(--panel); border: 1px solid var(--line);
+      border-radius: 20px; padding: 28px 22px; box-shadow: 0 20px 50px rgba(0,0,0,.55);
+    }
+    .login-brand { text-align: center; margin-bottom: 20px; }
+    .login-brand svg { width: 54px; height: 54px; margin-bottom: 8px; }
+    .login-brand h1 { margin: 0; font-size: 1.35rem; }
+    .login-brand p { margin: 4px 0 0; font-size: .85rem; color: var(--cyan); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+
+    .field { margin-bottom: 14px; }
+    label { display: block; font-size: .88rem; font-weight: 700; margin-bottom: 6px; color: var(--text); }
+    input[type="password"], input[type="text"], textarea, select {
+      width: 100%; min-height: 48px; padding: 10px 14px; border-radius: 12px;
+      border: 1.5px solid var(--line); background: var(--bg2); color: var(--text);
+      font-family: inherit; font-size: .96rem;
+    }
+    textarea { min-height: 92px; resize: vertical; }
+    input:focus, textarea:focus, select:focus { outline: 3px solid var(--cyan); outline-offset: 1px; }
+    .error-msg { color: #ff9c9c; font-size: .86rem; font-weight: 700; margin: 6px 0 10px; }
+
+    button, .link-pill, .file-label {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      min-height: 48px; padding: 10px 16px; border-radius: 12px; border: 0; cursor: pointer;
+      font-family: inherit; font-size: .92rem; font-weight: 800; text-decoration: none;
+      background: linear-gradient(135deg, var(--amber), #ff8a1f); color: #1b1300;
+    }
+    button.full { width: 100%; }
+    button.ghost, .link-pill, .file-label {
+      background: transparent; color: var(--text); border: 1.5px solid var(--line);
+    }
+    button.ghost:hover, .link-pill:hover, .file-label:hover { border-color: var(--amber); color: var(--amber); }
+    button.small { min-height: 40px; padding: 8px 14px; font-size: .84rem; }
+    button:disabled { opacity: .5; cursor: not-allowed; }
+
+    /* ---------- Dashboard ---------- */
     .topbar {
       display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
       padding: 14px 20px; background: rgba(11,16,32,.92); backdrop-filter: blur(10px);
@@ -48,39 +87,6 @@
 
     .top-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
     .container { max-width: 1040px; margin: 0 auto; padding: 20px 16px 48px; }
-
-    .panel {
-      background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
-      padding: 16px; margin-bottom: 16px;
-    }
-
-    .auth-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; }
-    .auth-field { flex: 1; min-width: 220px; }
-    label { display: block; font-size: .86rem; font-weight: 700; margin-bottom: 6px; color: var(--text); }
-    .help { margin: 6px 0 0; font-size: .82rem; color: var(--muted); }
-    input[type="password"], input[type="text"] {
-      width: 100%; min-height: 48px; padding: 10px 14px; border-radius: 12px;
-      border: 1.5px solid var(--line); background: var(--bg2); color: var(--text);
-      font-family: inherit; font-size: .96rem;
-    }
-    input:focus { outline: 3px solid var(--cyan); outline-offset: 1px; }
-
-    button, .link-pill {
-      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-      min-height: 48px; padding: 10px 16px; border-radius: 12px; border: 0; cursor: pointer;
-      font-family: inherit; font-size: .92rem; font-weight: 800; text-decoration: none;
-      background: linear-gradient(135deg, var(--amber), #ff8a1f); color: #1b1300;
-    }
-    button.ghost, .link-pill {
-      background: transparent; color: var(--text); border: 1.5px solid var(--line);
-    }
-    button.ghost:hover, .link-pill:hover { border-color: var(--amber); color: var(--amber); }
-    button.small { min-height: 40px; padding: 8px 12px; font-size: .84rem; }
-    button.btn-cyan { background: rgba(61,224,197,.15); color: var(--cyan); border: 1.5px solid rgba(61,224,197,.5); }
-    button.btn-purple { background: rgba(179,136,255,.15); color: var(--purple); border: 1.5px solid rgba(179,136,255,.5); }
-    button.btn-blue { background: rgba(91,140,255,.15); color: #9ec0ff; border: 1.5px solid rgba(91,140,255,.5); }
-    button:disabled { opacity: .45; cursor: not-allowed; }
-    .ico { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
     .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 16px; }
     .kpi {
@@ -110,8 +116,8 @@
     .card.p-media { border-left-color: var(--amber); }
     .card.p-baja { border-left-color: var(--cyan); }
 
-    .card-head { display: flex; gap: 14px; align-items: flex-start; justify-content: space-between; }
-    .card-info { flex: 1; min-width: 0; }
+    .card-head { display: flex; gap: 14px; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; }
+    .card-info { flex: 1; min-width: 240px; }
     .card-title { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
     .card-title h2 { margin: 0; font-size: 1.1rem; }
     .tag {
@@ -124,14 +130,22 @@
     .tag.alta { background: var(--red); color: #fff; }
 
     .desc { margin: 6px 0; color: #dbe3fa; font-size: .95rem; }
-    .meta { display: flex; flex-wrap: wrap; gap: 14px; font-size: .82rem; color: var(--muted); }
+    .admin-note-box {
+      margin: 8px 0 0; padding: 8px 12px; border-radius: 10px;
+      background: rgba(61,224,197,.08); border: 1px solid rgba(61,224,197,.28);
+      font-size: .86rem; color: var(--text);
+    }
+    .meta { display: flex; flex-wrap: wrap; gap: 14px; font-size: .82rem; color: var(--muted); margin-top: 8px; }
+    .photos-pair { display: flex; gap: 8px; flex: none; }
+    .thumb-wrap { text-align: center; }
+    .thumb-wrap span { display: block; font-size: .7rem; color: var(--muted); margin-top: 2px; font-weight: 700; }
     .thumb {
-      width: 96px; height: 96px; border-radius: 12px; object-fit: cover; flex: none;
+      width: 86px; height: 86px; border-radius: 12px; object-fit: cover;
       border: 1px solid var(--line); cursor: zoom-in; background: var(--bg2);
     }
 
     .card-actions {
-      display: flex; flex-wrap: wrap; gap: 8px; padding-top: 10px;
+      display: flex; justify-content: flex-end; gap: 8px; padding-top: 10px;
       border-top: 1px solid rgba(42,55,102,.65);
     }
     .empty {
@@ -139,74 +153,136 @@
       border-radius: var(--radius); color: var(--muted);
     }
 
+    /* ---------- Modales ---------- */
+    .modal-backdrop {
+      position: fixed; inset: 0; z-index: 60; padding: 16px;
+      background: rgba(6,9,20,.84); backdrop-filter: blur(6px);
+      display: grid; place-items: center;
+    }
+    .modal-card {
+      width: 100%; max-width: 460px; background: var(--panel); border: 1px solid var(--line);
+      border-radius: 20px; padding: 22px 18px; box-shadow: 0 20px 50px rgba(0,0,0,.6);
+    }
+    .modal-card h2 { margin: 0 0 12px; font-size: 1.2rem; }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px; }
+    .preview-img { width: 100%; max-height: 180px; object-fit: cover; border-radius: 12px; margin-top: 8px; border: 1px solid var(--line); }
+
     .toast {
       position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%);
       background: #fff; color: #101528; font-weight: 800; padding: 12px 18px;
-      border-radius: 12px; z-index: 60; box-shadow: 0 10px 30px rgba(0,0,0,.5);
+      border-radius: 12px; z-index: 80; box-shadow: 0 10px 30px rgba(0,0,0,.5);
       max-width: min(92vw, 460px); text-align: center;
     }
     .lightbox {
-      position: fixed; inset: 0; background: rgba(6,9,20,.88); z-index: 70;
+      position: fixed; inset: 0; background: rgba(6,9,20,.9); z-index: 75;
       display: grid; place-items: center; padding: 20px; cursor: zoom-out;
     }
     .lightbox img { max-width: 100%; max-height: 90vh; border-radius: 14px; border: 1px solid var(--line); }
   </style>
 </head>
 <body>
-  <header class="topbar">
-    <div class="brand">
-      <svg class="logo" viewBox="0 0 48 48" aria-hidden="true">
-        <path d="M24 3 42 9v13c0 11-7.5 19.5-18 23C13.5 41.5 6 33 6 22V9z" fill="var(--amber)"/>
-        <path d="M24 8 37 12.5V22c0 8.5-5.5 15-13 18-7.5-3-13-9.5-13-18v-9.5z" fill="var(--bg)"/>
-        <circle cx="24" cy="21" r="5" fill="var(--red)"/>
-        <path d="m24 33-5.5-8h11z" fill="var(--red)"/>
-      </svg>
-      <div>
-        <h1>CivicGuard · Centro de Mando</h1>
-        <p>Panel Administrativo Municipal</p>
+  <!-- ==================== PANTALLA DE LOGIN ==================== -->
+  <section id="login-view" class="login-wrap">
+    <form id="login-form" class="login-card">
+      <div class="login-brand">
+        <svg viewBox="0 0 48 48" aria-hidden="true">
+          <path d="M24 3 42 9v13c0 11-7.5 19.5-18 23C13.5 41.5 6 33 6 22V9z" fill="var(--amber)"/>
+          <path d="M24 8 37 12.5V22c0 8.5-5.5 15-13 18-7.5-3-13-9.5-13-18v-9.5z" fill="var(--bg)"/>
+          <circle cx="24" cy="21" r="5" fill="var(--red)"/>
+          <path d="m24 33-5.5-8h11z" fill="var(--red)"/>
+        </svg>
+        <h1>CivicGuard</h1>
+        <p>Acceso Municipal</p>
       </div>
-    </div>
-    <div class="top-actions">
-      <a href="/" class="link-pill">Ir a App Ciudadana</a>
-      <button type="button" id="btn-test-push" class="ghost small">Enviar Push de prueba</button>
-      <button type="button" id="btn-refresh" class="ghost small">Actualizar</button>
-    </div>
-  </header>
+      <div class="field">
+        <label for="login-user">Usuario</label>
+        <input type="text" id="login-user" value="admin" autocomplete="username" required>
+      </div>
+      <div class="field">
+        <label for="login-pass">Contraseña</label>
+        <input type="password" id="login-pass" placeholder="Ingresa la contraseña…" autocomplete="current-password" required>
+      </div>
+      <p id="login-error" class="error-msg" role="alert" hidden></p>
+      <button type="submit" id="btn-login" class="full">Iniciar sesión</button>
+      <p style="text-align:center;margin:14px 0 0;"><a href="/" class="link-pill small">Volver a la App Ciudadana</a></p>
+    </form>
+  </section>
 
-  <main class="container">
-    <section class="panel" aria-label="Autenticación de administrador">
-      <div class="auth-row">
-        <div class="auth-field">
-          <label for="admin-token">Token de administrador (x-admin-token)</label>
-          <input type="password" id="admin-token" placeholder="Escribe tu ADMIN_TOKEN…" autocomplete="off">
-          <p class="help">En local por defecto es <code>cambia-este-token</code>. En Render es el <code>ADMIN_TOKEN</code> configurado en Environment.</p>
+  <!-- ==================== CENTRO DE MANDO ==================== -->
+  <div id="dashboard-view" hidden>
+    <header class="topbar">
+      <div class="brand">
+        <svg class="logo" viewBox="0 0 48 48" aria-hidden="true">
+          <path d="M24 3 42 9v13c0 11-7.5 19.5-18 23C13.5 41.5 6 33 6 22V9z" fill="var(--amber)"/>
+          <path d="M24 8 37 12.5V22c0 8.5-5.5 15-13 18-7.5-3-13-9.5-13-18v-9.5z" fill="var(--bg)"/>
+          <circle cx="24" cy="21" r="5" fill="var(--red)"/>
+          <path d="m24 33-5.5-8h11z" fill="var(--red)"/>
+        </svg>
+        <div>
+          <h1>CivicGuard · Centro de Mando</h1>
+          <p id="operator-label">Operador Municipal</p>
         </div>
-        <button type="button" id="btn-toggle-token" class="ghost">Mostrar</button>
-        <button type="button" id="btn-unlock">Validar acceso</button>
       </div>
-    </section>
-
-    <section class="kpis" aria-label="Resumen de incidencias">
-      <div class="kpi"><span>Total recibidos</span><strong id="kpi-total">0</strong></div>
-      <div class="kpi c-blue"><span>Recibidos</span><strong id="kpi-recibido">0</strong></div>
-      <div class="kpi c-purple"><span>En proceso</span><strong id="kpi-proceso">0</strong></div>
-      <div class="kpi c-cyan"><span>Resueltos</span><strong id="kpi-resuelto">0</strong></div>
-    </section>
-
-    <div class="toolbar">
-      <div class="filters" role="group" aria-label="Filtrar por estado">
-        <button type="button" class="filter-btn active" data-filter="all">Todos</button>
-        <button type="button" class="filter-btn" data-filter="recibido">Recibidos</button>
-        <button type="button" class="filter-btn" data-filter="en_proceso">En proceso</button>
-        <button type="button" class="filter-btn" data-filter="resuelto">Resueltos</button>
-        <button type="button" class="filter-btn" data-filter="alta">Urgentes</button>
+      <div class="top-actions">
+        <a href="/" class="link-pill small">App Ciudadana</a>
+        <button type="button" id="btn-test-push" class="ghost small">Push de prueba</button>
+        <button type="button" id="btn-refresh" class="ghost small">Actualizar</button>
+        <button type="button" id="btn-logout" class="ghost small">Cerrar sesión</button>
       </div>
-    </div>
+    </header>
 
-    <section id="reports-grid" class="grid" aria-live="polite">
-      <div class="empty">Cargando reportes del servidor…</div>
-    </section>
-  </main>
+    <main class="container">
+      <section class="kpis" aria-label="Resumen de incidencias">
+        <div class="kpi"><span>Total recibidos</span><strong id="kpi-total">0</strong></div>
+        <div class="kpi c-blue"><span>Recibidos</span><strong id="kpi-recibido">0</strong></div>
+        <div class="kpi c-purple"><span>En proceso</span><strong id="kpi-proceso">0</strong></div>
+        <div class="kpi c-cyan"><span>Resueltos</span><strong id="kpi-resuelto">0</strong></div>
+      </section>
+
+      <div class="toolbar">
+        <div class="filters" role="group" aria-label="Filtrar por estado">
+          <button type="button" class="filter-btn active" data-filter="all">Todos</button>
+          <button type="button" class="filter-btn" data-filter="recibido">Recibidos</button>
+          <button type="button" class="filter-btn" data-filter="en_proceso">En proceso</button>
+          <button type="button" class="filter-btn" data-filter="resuelto">Resueltos</button>
+          <button type="button" class="filter-btn" data-filter="alta">Urgentes</button>
+        </div>
+      </div>
+
+      <section id="reports-grid" class="grid" aria-live="polite">
+        <div class="empty">Cargando reportes del servidor…</div>
+      </section>
+    </main>
+  </div>
+
+  <!-- ==================== MODAL: ACTUALIZAR AVANCE ==================== -->
+  <div id="update-modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="upd-title" hidden>
+    <form id="update-form" class="modal-card">
+      <h2 id="upd-title">Actualizar avance del reporte</h2>
+      <div class="field">
+        <label for="upd-status">Nuevo estatus</label>
+        <select id="upd-status" required>
+          <option value="recibido">Recibido</option>
+          <option value="en_proceso">En proceso</option>
+          <option value="resuelto">Resuelto (envía notificación Push)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="upd-note">Nota para el ciudadano</label>
+        <textarea id="upd-note" maxlength="400" placeholder="Ej. Cuadrilla #3 en camino / Bache reparado con mezcla asfáltica…"></textarea>
+      </div>
+      <div class="field">
+        <label for="upd-photo">Foto de evidencia de solución (opcional)</label>
+        <input type="file" id="upd-photo" accept="image/*" hidden>
+        <label for="upd-photo" class="file-label small" style="width:100%;">Elegir foto del trabajo realizado</label>
+        <img id="upd-preview" class="preview-img" alt="Vista previa de solución" hidden>
+      </div>
+      <div class="modal-actions">
+        <button type="button" id="btn-upd-cancel" class="ghost">Cancelar</button>
+        <button type="submit" id="btn-upd-save">Guardar avance</button>
+      </div>
+    </form>
+  </div>
 
   <div id="lightbox" class="lightbox" hidden>
     <img id="lightbox-img" alt="Evidencia ampliada">
@@ -218,6 +294,9 @@
       const $ = id => document.getElementById(id);
       let reports = [];
       let activeFilter = 'all';
+      let editingId = null;
+      let sessionToken = sessionStorage.getItem('cg_admin_token') || '';
+      let sessionUser = sessionStorage.getItem('cg_admin_user') || 'Operador';
 
       function toast(msg, ms = 3200) {
         const el = $('toast');
@@ -233,13 +312,55 @@
         }[c]));
       }
 
-      function getToken() {
-        return $('admin-token').value.trim();
+      function enterDashboard() {
+        $('login-view').hidden = true;
+        $('dashboard-view').hidden = false;
+        $('operator-label').textContent = `Operador: ${sessionUser}`;
+        loadReports();
       }
+
+      function logout() {
+        sessionToken = '';
+        sessionStorage.removeItem('cg_admin_token');
+        sessionStorage.removeItem('cg_admin_user');
+        $('login-pass').value = '';
+        $('dashboard-view').hidden = true;
+        $('login-view').hidden = false;
+      }
+
+      $('login-form').addEventListener('submit', async e => {
+        e.preventDefault();
+        const user = $('login-user').value.trim() || 'admin';
+        const password = $('login-pass').value;
+        const errEl = $('login-error');
+        errEl.hidden = true;
+        $('btn-login').disabled = true;
+
+        try {
+          const res = await fetch('/api/admin/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user, password })
+          });
+          if (!res.ok) throw new Error('Usuario o contraseña incorrectos');
+          sessionToken = password;
+          sessionUser = user;
+          sessionStorage.setItem('cg_admin_token', password);
+          sessionStorage.setItem('cg_admin_user', user);
+          enterDashboard();
+        } catch (err) {
+          errEl.textContent = err.message;
+          errEl.hidden = false;
+        } finally {
+          $('btn-login').disabled = false;
+        }
+      });
+
+      $('btn-logout').addEventListener('click', logout);
 
       async function loadReports() {
         try {
-          const res = await fetch('/api/reports');
+          const res = await fetch('/api/reports', { cache: 'no-store' });
           if (!res.ok) throw new Error('Error ' + res.status);
           reports = (await res.json()).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
           render();
@@ -280,51 +401,84 @@
                     ${r.priority === 'alta' ? '<span class="tag alta">Urgente</span>' : ''}
                   </div>
                   <p class="desc">${esc(r.description)}</p>
+                  ${r.adminNote ? `<p class="admin-note-box"><strong>Última nota:</strong> ${esc(r.adminNote)}</p>` : ''}
                   <div class="meta">
-                    <span>ID: ${esc(r.id)}</span>
                     <span>Fecha: ${esc(when)}</span>
                     <span>Ubicación: ${esc(loc)}</span>
                   </div>
                 </div>
-                ${r.photo ? `<img class="thumb" src="${esc(r.photo)}" alt="Evidencia del reporte" data-zoom="${esc(r.photo)}">` : ''}
+                <div class="photos-pair">
+                  ${r.photo ? `<div class="thumb-wrap"><img class="thumb" src="${esc(r.photo)}" alt="Antes" data-zoom="${esc(r.photo)}"><span>Antes</span></div>` : ''}
+                  ${r.resolvedPhoto ? `<div class="thumb-wrap"><img class="thumb" src="${esc(r.resolvedPhoto)}" alt="Después" data-zoom="${esc(r.resolvedPhoto)}"><span>Después</span></div>` : ''}
+                </div>
               </div>
               <div class="card-actions">
-                <button type="button" class="small btn-blue" data-id="${esc(r.id)}" data-status="recibido" ${r.status === 'recibido' ? 'disabled' : ''}>Marcar Recibido</button>
-                <button type="button" class="small btn-purple" data-id="${esc(r.id)}" data-status="en_proceso" ${r.status === 'en_proceso' ? 'disabled' : ''}>Pasar a En proceso</button>
-                <button type="button" class="small btn-cyan" data-id="${esc(r.id)}" data-status="resuelto" ${r.status === 'resuelto' ? 'disabled' : ''}>Marcar Resuelto (envía Push)</button>
+                <button type="button" class="small" data-open-update="${esc(r.id)}">Actualizar avance</button>
               </div>
             </article>
           `;
         }).join('');
       }
 
-      async function updateStatus(id, status) {
-        const token = getToken();
-        if (!token) {
-          toast('Ingresa tu ADMIN_TOKEN arriba antes de cambiar el estatus.');
-          $('admin-token').focus();
-          return;
-        }
-        try {
-          const res = await fetch(`/api/reports/${encodeURIComponent(id)}/status`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json', 'x-admin-token': token },
-            body: JSON.stringify({ status })
-          });
-          const data = await res.json().catch(() => ({}));
-          if (!res.ok) throw new Error(data.error || ('HTTP ' + res.status));
-          toast(status === 'resuelto'
-            ? 'Reporte marcado como Resuelto y notificación Push enviada.'
-            : 'Estatus actualizado correctamente.');
-          await loadReports();
-        } catch (e) {
-          toast('Error: ' + e.message);
-        }
+      function openUpdateModal(id) {
+        const r = reports.find(item => item.id === id);
+        if (!r) return;
+        editingId = id;
+        $('upd-title').textContent = `Atender: ${r.type}`;
+        $('upd-status').value = r.status === 'recibido' ? 'en_proceso' : (r.status || 'en_proceso');
+        $('upd-note').value = r.adminNote || '';
+        $('upd-photo').value = '';
+        $('upd-preview').hidden = true;
+        $('update-modal').hidden = false;
+        $('upd-note').focus();
       }
 
+      $('upd-photo').addEventListener('change', e => {
+        const file = e.target.files[0];
+        if (!file) { $('upd-preview').hidden = true; return; }
+        $('upd-preview').src = URL.createObjectURL(file);
+        $('upd-preview').hidden = false;
+      });
+
+      $('btn-upd-cancel').addEventListener('click', () => { $('update-modal').hidden = true; });
+
+      $('update-form').addEventListener('submit', async e => {
+        e.preventDefault();
+        if (!editingId) return;
+        const status = $('upd-status').value;
+        const note = $('upd-note').value.trim();
+        const file = $('upd-photo').files[0];
+
+        const fd = new FormData();
+        fd.append('status', status);
+        if (note) fd.append('note', note);
+        if (file) fd.append('resolvedPhoto', file, 'solucion.jpg');
+
+        $('btn-upd-save').disabled = true;
+        try {
+          const res = await fetch(`/api/reports/${encodeURIComponent(editingId)}/status`, {
+            method: 'PATCH',
+            headers: { 'x-admin-token': sessionToken },
+            body: fd
+          });
+          const data = await res.json().catch(() => ({}));
+          if (res.status === 401) { logout(); toast('Sesión expirada, inicia sesión de nuevo.'); return; }
+          if (!res.ok) throw new Error(data.error || ('HTTP ' + res.status));
+          $('update-modal').hidden = true;
+          toast(status === 'resuelto'
+            ? 'Reporte marcado como Resuelto y notificación Push enviada.'
+            : 'Avance guardado correctamente.');
+          await loadReports();
+        } catch (err) {
+          toast('Error: ' + err.message);
+        } finally {
+          $('btn-upd-save').disabled = false;
+        }
+      });
+
       $('reports-grid').addEventListener('click', e => {
-        const btn = e.target.closest('button[data-id][data-status]');
-        if (btn) updateStatus(btn.dataset.id, btn.dataset.status);
+        const btn = e.target.closest('button[data-open-update]');
+        if (btn) openUpdateModal(btn.dataset.openUpdate);
         const img = e.target.closest('img[data-zoom]');
         if (img) {
           $('lightbox-img').src = img.dataset.zoom;
@@ -342,37 +496,24 @@
         });
       });
 
-      $('btn-toggle-token').addEventListener('click', () => {
-        const inp = $('admin-token');
-        const show = inp.type === 'password';
-        inp.type = show ? 'text' : 'password';
-        $('btn-toggle-token').textContent = show ? 'Ocultar' : 'Mostrar';
-      });
-
-      $('btn-unlock').addEventListener('click', () => {
-        if (!getToken()) { toast('Escribe tu token primero.'); return; }
-        toast('Token listo. Ya puedes cambiar estatus o probar notificaciones Push.');
-      });
-
       $('btn-refresh').addEventListener('click', loadReports);
 
       $('btn-test-push').addEventListener('click', async () => {
-        const token = getToken();
-        if (!token) { toast('Ingresa tu ADMIN_TOKEN primero.'); $('admin-token').focus(); return; }
         try {
           const res = await fetch('/api/push/test', {
             method: 'POST',
-            headers: { 'x-admin-token': token }
+            headers: { 'x-admin-token': sessionToken }
           });
           const data = await res.json().catch(() => ({}));
+          if (res.status === 401) { logout(); return; }
           if (!res.ok) throw new Error(data.error || ('HTTP ' + res.status));
           toast(`Notificación de prueba enviada a ${data.sent} dispositivo(s).`);
-        } catch (e) {
-          toast('Error al enviar Push: ' + e.message);
+        } catch (err) {
+          toast('Error al enviar Push: ' + err.message);
         }
       });
 
-      loadReports();
+      if (sessionToken) enterDashboard();
     })();
   </script>
 </body>

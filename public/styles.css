@@ -281,7 +281,46 @@ video, canvas { width: 100%; max-height: 300px; object-fit: cover; border-radius
 .confirm-msg { color: var(--text); margin: 8px 0 16px; font-size: .95rem; }
 
 /* ---------- Listado y filtros ---------- */
-.view-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+.view-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
+.list-summary {
+  margin: 0 0 10px; padding: 8px 12px; border-radius: 10px;
+  background: rgba(91,140,255,.1); border: 1px solid rgba(91,140,255,.3);
+  font-size: .86rem; font-weight: 700; color: var(--text);
+}
+.card-note {
+  margin: 8px 0 0; padding: 8px 10px; border-radius: 10px;
+  background: rgba(61,224,197,.08); border: 1px solid rgba(61,224,197,.28);
+  font-size: .84rem; color: var(--text);
+}
+.card-footer {
+  display: flex; justify-content: flex-end; margin-top: 10px;
+}
+.detail-card {
+  max-width: 520px; max-height: 90vh; overflow-y: auto; text-align: left;
+}
+.detail-head {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 8px;
+}
+.detail-head h2 { margin: 4px 0 0; }
+.folio-code.small { font-size: .85rem; }
+.detail-desc { margin: 10px 0 6px; font-size: .96rem; color: #e2e9ff; }
+.before-after-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 12px 0;
+}
+.ba-item { background: var(--bg2); border: 1px solid var(--line); border-radius: 12px; padding: 8px; text-align: center; }
+.ba-item img { width: 100%; max-height: 180px; object-fit: cover; border-radius: 8px; display: block; }
+.ba-item span { display: block; margin-top: 6px; font-size: .76rem; font-weight: 800; color: var(--cyan); text-transform: uppercase; }
+.detail-history-wrap { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line); }
+.detail-history-wrap h3 { font-size: .95rem; margin-bottom: 10px; }
+.history-list { list-style: none; margin: 0; padding: 0 0 0 14px; border-left: 2px solid var(--line); display: grid; gap: 12px; }
+.history-item { position: relative; padding-left: 10px; }
+.history-item::before {
+  content: ""; position: absolute; left: -20px; top: 5px; width: 10px; height: 10px;
+  border-radius: 50%; background: var(--cyan); border: 2px solid var(--bg);
+}
+.history-item strong { display: block; font-size: .88rem; color: var(--text); }
+.history-item time { display: block; font-size: .76rem; color: var(--muted); }
+.history-item p { margin: 3px 0 0; font-size: .84rem; color: #dbe3fa; }
 .syncing .sync-ico { animation: spin 1s linear infinite; }
 
 .filter-bar {

@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="es-MX">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Centro de Mando · CivicGuard Admin</title>
+  <meta name="theme-color" content="#0b1020">
+  <link rel="icon" type="image/png" href="/icons/icon-192.png">
+  <style>
+    :root {
+      --bg: #0b1020;
+      --bg2: #121a33;
+      --panel: #161f3d;
+      --line: #2a3766;
+      --text: #eef3ff;
+      --muted: #a2afd4;
+      --amber: #ffb020;
+      --red: #ff4d4d;
+      --cyan: #3de0c5;
+      --blue: #5b8cff;
+      --purple: #b388ff;
+      --radius: 16px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: ui-rounded, "SF Pro Rounded", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      background:
+        radial-gradient(1100px 480px at 90% -10%, rgba(91,140,255,.18), transparent 60%),
+        radial-gradient(800px 400px at -10% 110%, rgba(61,224,197,.10), transparent 60%),
+        var(--bg);
+      background-attachment: fixed;
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.45;
+    }
+    [hidden] { display: none !important; }
+
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+      padding: 14px 20px; background: rgba(11,16,32,.92); backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 10;
+    }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .logo { width: 38px; height: 38px; flex: none; }
+    .brand h1 { margin: 0; font-size: 1.15rem; }
+    .brand p { margin: 0; font-size: .74rem; color: var(--cyan); text-transform: uppercase; letter-spacing: 1px; font-weight: 700; }
+
+    .top-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .container { max-width: 1040px; margin: 0 auto; padding: 20px 16px 48px; }
+
+    .panel {
+      background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+      padding: 16px; margin-bottom: 16px;
+    }
+
+    .auth-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; }
+    .auth-field { flex: 1; min-width: 220px; }
+    label { display: block; font-size: .86rem; font-weight: 700; margin-bottom: 6px; color: var(--text); }
+    .help { margin: 6px 0 0; font-size: .82rem; color: var(--muted); }
+    input[type="password"], input[type="text"] {
+      width: 100%; min-height: 48px; padding: 10px 14px; border-radius: 12px;
+      border: 1.5px solid var(--line); background: var(--bg2); color: var(--text);
+      font-family: inherit; font-size: .96rem;
+    }
+    input:focus { outline: 3px solid var(--cyan); outline-offset: 1px; }
+
+    button, .link-pill {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      min-height: 48px; padding: 10px 16px; border-radius: 12px; border: 0; cursor: pointer;
+      font-family: inherit; font-size: .92rem; font-weight: 800; text-decoration: none;
+      background: linear-gradient(135deg, var(--amber), #ff8a1f); color: #1b1300;
+    }
+    button.ghost, .link-pill {
+      background: transparent; color: var(--text); border: 1.5px solid var(--line);
+    }
+    button.ghost:hover, .link-pill:hover { border-color: var(--amber); color: var(--amber); }
+    button.small { min-height: 40px; padding: 8px 12px; font-size: .84rem; }
+    button.btn-cyan { background: rgba(61,224,197,.15); color: var(--cyan); border: 1.5px solid rgba(61,224,197,.5); }
+    button.btn-purple { background: rgba(179,136,255,.15); color: var(--purple); border: 1.5px solid rgba(179,136,255,.5); }
+    button.btn-blue { background: rgba(91,140,255,.15); color: #9ec0ff; border: 1.5px solid rgba(91,140,255,.5); }
+    button:disabled { opacity: .45; cursor: not-allowed; }
+    .ico { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+    .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 16px; }
+    .kpi {
+      background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+      padding: 14px 16px;
+    }
+    .kpi span { display: block; font-size: .78rem; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: .5px; }
+    .kpi strong { display: block; font-size: 1.75rem; margin-top: 4px; }
+    .kpi.c-blue strong { color: var(--blue); }
+    .kpi.c-purple strong { color: var(--purple); }
+    .kpi.c-cyan strong { color: var(--cyan); }
+
+    .toolbar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; }
+    .filters { display: flex; gap: 8px; flex-wrap: wrap; }
+    .filter-btn {
+      min-height: 40px; padding: 6px 14px; border-radius: 999px; font-size: .84rem;
+      background: var(--panel); color: var(--muted); border: 1px solid var(--line);
+    }
+    .filter-btn.active { background: var(--amber); color: #1b1300; border-color: var(--amber); }
+
+    .grid { display: grid; gap: 12px; }
+    .card {
+      background: var(--panel); border: 1px solid var(--line); border-left: 5px solid var(--blue);
+      border-radius: var(--radius); padding: 16px; display: grid; gap: 12px;
+    }
+    .card.p-alta { border-left-color: var(--red); }
+    .card.p-media { border-left-color: var(--amber); }
+    .card.p-baja { border-left-color: var(--cyan); }
+
+    .card-head { display: flex; gap: 14px; align-items: flex-start; justify-content: space-between; }
+    .card-info { flex: 1; min-width: 0; }
+    .card-title { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
+    .card-title h2 { margin: 0; font-size: 1.1rem; }
+    .tag {
+      display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 999px;
+      font-size: .74rem; font-weight: 800; text-transform: uppercase; letter-spacing: .4px;
+    }
+    .tag.recibido { background: var(--blue); color: #fff; }
+    .tag.en_proceso { background: var(--purple); color: #14082b; }
+    .tag.resuelto { background: var(--cyan); color: #0b1020; }
+    .tag.alta { background: var(--red); color: #fff; }
+
+    .desc { margin: 6px 0; color: #dbe3fa; font-size: .95rem; }
+    .meta { display: flex; flex-wrap: wrap; gap: 14px; font-size: .82rem; color: var(--muted); }
+    .thumb {
+      width: 96px; height: 96px; border-radius: 12px; object-fit: cover; flex: none;
+      border: 1px solid var(--line); cursor: zoom-in; background: var(--bg2);
+    }
+
+    .card-actions {
+      display: flex; flex-wrap: wrap; gap: 8px; padding-top: 10px;
+      border-top: 1px solid rgba(42,55,102,.65);
+    }
+    .empty {
+      text-align: center; padding: 36px 16px; border: 2px dashed var(--line);
+      border-radius: var(--radius); color: var(--muted);
+    }
+
+    .toast {
+      position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%);
+      background: #fff; color: #101528; font-weight: 800; padding: 12px 18px;
+      border-radius: 12px; z-index: 60; box-shadow: 0 10px 30px rgba(0,0,0,.5);
+      max-width: min(92vw, 460px); text-align: center;
+    }
+    .lightbox {
+      position: fixed; inset: 0; background: rgba(6,9,20,.88); z-index: 70;
+      display: grid; place-items: center; padding: 20px; cursor: zoom-out;
+    }
+    .lightbox img { max-width: 100%; max-height: 90vh; border-radius: 14px; border: 1px solid var(--line); }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <svg class="logo" viewBox="0 0 48 48" aria-hidden="true">
+        <path d="M24 3 42 9v13c0 11-7.5 19.5-18 23C13.5 41.5 6 33 6 22V9z" fill="var(--amber)"/>
+        <path d="M24 8 37 12.5V22c0 8.5-5.5 15-13 18-7.5-3-13-9.5-13-18v-9.5z" fill="var(--bg)"/>
+        <circle cx="24" cy="21" r="5" fill="var(--red)"/>
+        <path d="m24 33-5.5-8h11z" fill="var(--red)"/>
+      </svg>
+      <div>
+        <h1>CivicGuard · Centro de Mando</h1>
+        <p>Panel Administrativo Municipal</p>
+      </div>
+    </div>
+    <div class="top-actions">
+      <a href="/" class="link-pill">Ir a App Ciudadana</a>
+      <button type="button" id="btn-test-push" class="ghost small">Enviar Push de prueba</button>
+      <button type="button" id="btn-refresh" class="ghost small">Actualizar</button>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="panel" aria-label="Autenticación de administrador">
+      <div class="auth-row">
+        <div class="auth-field">
+          <label for="admin-token">Token de administrador (x-admin-token)</label>
+          <input type="password" id="admin-token" placeholder="Escribe tu ADMIN_TOKEN…" autocomplete="off">
+          <p class="help">En local por defecto es <code>cambia-este-token</code>. En Render es el <code>ADMIN_TOKEN</code> configurado en Environment.</p>
+        </div>
+        <button type="button" id="btn-toggle-token" class="ghost">Mostrar</button>
+        <button type="button" id="btn-unlock">Validar acceso</button>
+      </div>
+    </section>
+
+    <section class="kpis" aria-label="Resumen de incidencias">
+      <div class="kpi"><span>Total recibidos</span><strong id="kpi-total">0</strong></div>
+      <div class="kpi c-blue"><span>Recibidos</span><strong id="kpi-recibido">0</strong></div>
+      <div class="kpi c-purple"><span>En proceso</span><strong id="kpi-proceso">0</strong></div>
+      <div class="kpi c-cyan"><span>Resueltos</span><strong id="kpi-resuelto">0</strong></div>
+    </section>
+
+    <div class="toolbar">
+      <div class="filters" role="group" aria-label="Filtrar por estado">
+        <button type="button" class="filter-btn active" data-filter="all">Todos</button>
+        <button type="button" class="filter-btn" data-filter="recibido">Recibidos</button>
+        <button type="button" class="filter-btn" data-filter="en_proceso">En proceso</button>
+        <button type="button" class="filter-btn" data-filter="resuelto">Resueltos</button>
+        <button type="button" class="filter-btn" data-filter="alta">Urgentes</button>
+      </div>
+    </div>
+
+    <section id="reports-grid" class="grid" aria-live="polite">
+      <div class="empty">Cargando reportes del servidor…</div>
+    </section>
+  </main>
+
+  <div id="lightbox" class="lightbox" hidden>
+    <img id="lightbox-img" alt="Evidencia ampliada">
+  </div>
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+  <script>
+    (() => {
+      const $ = id => document.getElementById(id);
+      let reports = [];
+      let activeFilter = 'all';
+
+      function toast(msg, ms = 3200) {
+        const el = $('toast');
+        el.textContent = msg;
+        el.hidden = false;
+        clearTimeout(toast._t);
+        toast._t = setTimeout(() => { el.hidden = true; }, ms);
+      }
+
+      function esc(s) {
+        return String(s).replace(/[&<>"']/g, c => ({
+          '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+        }[c]));
+      }
+
+      function getToken() {
+        return $('admin-token').value.trim();
+      }
+
+      async function loadReports() {
+        try {
+          const res = await fetch('/api/reports');
+          if (!res.ok) throw new Error('Error ' + res.status);
+          reports = (await res.json()).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+          render();
+        } catch (e) {
+          $('reports-grid').innerHTML = `<div class="empty">No se pudieron cargar los reportes: ${esc(e.message)}</div>`;
+        }
+      }
+
+      function render() {
+        $('kpi-total').textContent = reports.length;
+        $('kpi-recibido').textContent = reports.filter(r => r.status === 'recibido').length;
+        $('kpi-proceso').textContent = reports.filter(r => r.status === 'en_proceso').length;
+        $('kpi-resuelto').textContent = reports.filter(r => r.status === 'resuelto').length;
+
+        const filtered = reports.filter(r => {
+          if (activeFilter === 'all') return true;
+          if (activeFilter === 'alta') return r.priority === 'alta';
+          return r.status === activeFilter;
+        });
+
+        const grid = $('reports-grid');
+        if (!filtered.length) {
+          grid.innerHTML = '<div class="empty">No hay reportes en esta categoría todavía.</div>';
+          return;
+        }
+
+        const statusLabels = { recibido: 'Recibido', en_proceso: 'En proceso', resuelto: 'Resuelto' };
+        grid.innerHTML = filtered.map(r => {
+          const when = new Date(r.createdAt || Date.now()).toLocaleString('es-MX');
+          const loc = r.lat != null ? `${Number(r.lat).toFixed(5)}, ${Number(r.lng).toFixed(5)}` : 'Sin coordenadas';
+          return `
+            <article class="card p-${esc(r.priority || 'media')}">
+              <div class="card-head">
+                <div class="card-info">
+                  <div class="card-title">
+                    <h2>${esc(r.type)}</h2>
+                    <span class="tag ${esc(r.status)}">${esc(statusLabels[r.status] || r.status)}</span>
+                    ${r.priority === 'alta' ? '<span class="tag alta">Urgente</span>' : ''}
+                  </div>
+                  <p class="desc">${esc(r.description)}</p>
+                  <div class="meta">
+                    <span>ID: ${esc(r.id)}</span>
+                    <span>Fecha: ${esc(when)}</span>
+                    <span>Ubicación: ${esc(loc)}</span>
+                  </div>
+                </div>
+                ${r.photo ? `<img class="thumb" src="${esc(r.photo)}" alt="Evidencia del reporte" data-zoom="${esc(r.photo)}">` : ''}
+              </div>
+              <div class="card-actions">
+                <button type="button" class="small btn-blue" data-id="${esc(r.id)}" data-status="recibido" ${r.status === 'recibido' ? 'disabled' : ''}>Marcar Recibido</button>
+                <button type="button" class="small btn-purple" data-id="${esc(r.id)}" data-status="en_proceso" ${r.status === 'en_proceso' ? 'disabled' : ''}>Pasar a En proceso</button>
+                <button type="button" class="small btn-cyan" data-id="${esc(r.id)}" data-status="resuelto" ${r.status === 'resuelto' ? 'disabled' : ''}>Marcar Resuelto (envía Push)</button>
+              </div>
+            </article>
+          `;
+        }).join('');
+      }
+
+      async function updateStatus(id, status) {
+        const token = getToken();
+        if (!token) {
+          toast('Ingresa tu ADMIN_TOKEN arriba antes de cambiar el estatus.');
+          $('admin-token').focus();
+          return;
+        }
+        try {
+          const res = await fetch(`/api/reports/${encodeURIComponent(id)}/status`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json', 'x-admin-token': token },
+            body: JSON.stringify({ status })
+          });
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) throw new Error(data.error || ('HTTP ' + res.status));
+          toast(status === 'resuelto'
+            ? 'Reporte marcado como Resuelto y notificación Push enviada.'
+            : 'Estatus actualizado correctamente.');
+          await loadReports();
+        } catch (e) {
+          toast('Error: ' + e.message);
+        }
+      }
+
+      $('reports-grid').addEventListener('click', e => {
+        const btn = e.target.closest('button[data-id][data-status]');
+        if (btn) updateStatus(btn.dataset.id, btn.dataset.status);
+        const img = e.target.closest('img[data-zoom]');
+        if (img) {
+          $('lightbox-img').src = img.dataset.zoom;
+          $('lightbox').hidden = false;
+        }
+      });
+
+      $('lightbox').addEventListener('click', () => { $('lightbox').hidden = true; });
+
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          activeFilter = btn.dataset.filter;
+          document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b === btn));
+          render();
+        });
+      });
+
+      $('btn-toggle-token').addEventListener('click', () => {
+        const inp = $('admin-token');
+        const show = inp.type === 'password';
+        inp.type = show ? 'text' : 'password';
+        $('btn-toggle-token').textContent = show ? 'Ocultar' : 'Mostrar';
+      });
+
+      $('btn-unlock').addEventListener('click', () => {
+        if (!getToken()) { toast('Escribe tu token primero.'); return; }
+        toast('Token listo. Ya puedes cambiar estatus o probar notificaciones Push.');
+      });
+
+      $('btn-refresh').addEventListener('click', loadReports);
+
+      $('btn-test-push').addEventListener('click', async () => {
+        const token = getToken();
+        if (!token) { toast('Ingresa tu ADMIN_TOKEN primero.'); $('admin-token').focus(); return; }
+        try {
+          const res = await fetch('/api/push/test', {
+            method: 'POST',
+            headers: { 'x-admin-token': token }
+          });
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) throw new Error(data.error || ('HTTP ' + res.status));
+          toast(`Notificación de prueba enviada a ${data.sent} dispositivo(s).`);
+        } catch (e) {
+          toast('Error al enviar Push: ' + e.message);
+        }
+      });
+
+      loadReports();
+    })();
+  </script>
+</body>
+</html>

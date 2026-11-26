@@ -50,6 +50,7 @@ app.use(express.static(path.join(__dirname, 'public'), {
   }
 }));
 app.use('/uploads', express.static(UPLOAD_DIR, { maxAge: '7d' }));
+app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
 
 /* ---- API ---- */
 const upload = multer({
